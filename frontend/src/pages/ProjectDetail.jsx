@@ -37,21 +37,19 @@ function ProjectDetail() {
         <h3 className="text-lg leading-6 font-medium text-gray-900">{project.name}</h3>
         <p className="mt-1 max-w-2xl text-sm text-gray-500">{project.description}</p>
       </div>
-
       <div className="border-t border-gray-200">
         <dl>
           <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
             <dt className="text-sm font-medium text-gray-500">Owner</dt>
-            <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{project.owner?.username}</dd>
+            <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{project.owner.username}</dd>
           </div>
-          
           <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
             <dt className="text-sm font-medium text-gray-500">Contributors</dt>
             <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-              {project.contributors?.length > 0 ? (
+              {project.contributors.length > 0 ? (
                 <ul>
-                  {project.contributors.map((contributor) => (
-                    <li key={contributor.id}>{contributor.username}</li>
+                  {project.contributors.map((contributor, index) => (
+                    <li key={index}>{contributor}</li>
                   ))}
                 </ul>
               ) : (
@@ -59,18 +57,32 @@ function ProjectDetail() {
               )}
             </dd>
           </div>
-
           <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-            <dt className="text-sm font-medium text-gray-500">Created At</dt>
+            <dt className="text-sm font-medium text-gray-500">Tasks</dt>
             <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-              {new Date(project.created_at).toLocaleDateString()}
+              {project.tasks.length > 0 ? (
+                <ul>
+                  {project.tasks.map((task) => (
+                    <li key={task.id}>
+                      <strong>{task.title}</strong> - {task.description} (Status: {task.status})
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <span>No tasks yet</span>
+              )}
             </dd>
           </div>
-
           <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+            <dt className="text-sm font-medium text-gray-500">Created At</dt>
+            <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+              {new Date(project.created_at).toLocaleString()}
+            </dd>
+          </div>
+          <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
             <dt className="text-sm font-medium text-gray-500">Last Updated</dt>
             <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-              {new Date(project.updated_at).toLocaleDateString()}
+              {new Date(project.updated_at).toLocaleString()}
             </dd>
           </div>
         </dl>

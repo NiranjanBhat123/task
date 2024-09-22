@@ -26,15 +26,26 @@ export const registerUser = async (username, email, password) => {
 
 export const getProjects = async () => {
   const response = await api.get('/projects/');
+  console.log(response.data);
   return response.data;
 };
 
 export const getProject = async (id) => {
   const response = await api.get(`/projects/${id}/`);
+  console.log(response.data);
   return response.data;
 };
 
 export const createProject = async (projectData) => {
   const response = await api.post('/projects/', projectData);
+  console.log(response.data);
   return response.data;
 };
+
+
+export const getUsers = async () => {
+  const response = await api.get('/users/');
+  return response.data;
+};
+
+

@@ -1,24 +1,45 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createProject } from '../services/api'; // Import the API call
+import { createProject, getUsers } from '../services/api';
+import { TextField, MenuItem, Checkbox, ListItemText, Button, CircularProgress } from '@mui/material';
+import { Select, FormControl, InputLabel } from '@mui/material';
 
 function CreateProject() {
   const [projectData, setProjectData] = useState({
     name: '',
     description: '',
-    contributors: '',
+    contributors: [],
+    taskTitle: '',
+    taskDescription: '',
+    taskAssignedTo: '',
   });
+  const [users, setUsers] = useState([]);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  // Handle input changes
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const fetchUsers = async () => {
+    try {
+      const response = await getUsers();
+      setUsers(response);
+    } catch (err) {
+      setError('Error fetching users');
+    }
+  };
+
   const handleChange = (e) => {
     setProjectData({ ...projectData, [e.target.name]: e.target.value });
   };
 
-  // Handle form submission
+  const handleContributorsChange = (event) => {
+    setProjectData({ ...projectData, contributors: event.target.value });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -26,19 +47,23 @@ function CreateProject() {
     setSuccess('');
 
     try {
-      const contributorsList = projectData.contributors
-        .split(',')
-        .map((contributor) => contributor.trim());
+      const formattedData = {
+        name: projectData.name,
+        description: projectData.description,
+        contributors: projectData.contributors,
+        tasks: [
+          {
+            title: projectData.taskTitle,
+            description: projectData.taskDescription,
+            assigned_to: projectData.taskAssignedTo,
+          },
+        ],
+      };
 
-      // Add contributors as a list
-      const response = await createProject({
-        ...projectData,
-        contributors: contributorsList,
-      });
-
+      const response = await createProject(formattedData);
       setSuccess('Project created successfully!');
       setTimeout(() => {
-        navigate(`/projects/${response.id}`); // Redirect to the newly created project detail page
+        navigate(`/projects/${response.id}`);
       }, 1500);
     } catch (err) {
       setError('Error creating project. Please try again.');
@@ -48,60 +73,89 @@ function CreateProject() {
   };
 
   return (
-    <div className="max-w-lg mx-auto bg-white p-6 rounded-lg shadow-md">
-      <h2 className="text-xl font-semibold text-gray-800 mb-4">Create New Project</h2>
-      {error && <div className="text-red-500 mb-4">{error}</div>}
-      {success && <div className="text-green-500 mb-4">{success}</div>}
-      <form onSubmit={handleSubmit}>
-        <div className="mb-4">
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-            Project Name
-          </label>
-          <input
-            type="text"
-            name="name"
-            value={projectData.name}
-            onChange={handleChange}
-            required
-            className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-          />
-        </div>
-        
-        <div className="mb-4">
-          <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-            Project Description
-          </label>
-          <textarea
-            name="description"
-            value={projectData.description}
-            onChange={handleChange}
-            required
-            className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-          />
-        </div>
-
-        <div className="mb-4">
-          <label htmlFor="contributors" className="block text-sm font-medium text-gray-700">
-            Contributors (comma-separated usernames)
-          </label>
-          <input
-            type="text"
-            name="contributors"
+    <div className="max-w-2xl mx-auto mt-8 p-6 bg-white rounded-lg shadow-md">
+      <h2 className="text-2xl font-bold mb-6">Create New Project</h2>
+      {error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">{error}</div>}
+      {success && <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">{success}</div>}
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <TextField
+          fullWidth
+          label="Project Name"
+          name="name"
+          value={projectData.name}
+          onChange={handleChange}
+          required
+        />
+        <TextField
+          fullWidth
+          label="Project Description"
+          name="description"
+          value={projectData.description}
+          onChange={handleChange}
+          multiline
+          rows={4}
+          required
+        />
+        <FormControl fullWidth>
+          <InputLabel id="contributors-label">Contributors</InputLabel>
+          <Select
+            labelId="contributors-label"
+            multiple
             value={projectData.contributors}
+            onChange={handleContributorsChange}
+            renderValue={(selected) => selected.map(id => users.find(user => user.id === id)?.username).join(', ')}
+          >
+            {users.map((user) => (
+              <MenuItem key={user.id} value={user.id}>
+                <Checkbox checked={projectData.contributors.indexOf(user.id) > -1} />
+                <ListItemText primary={user.username} />
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <TextField
+          fullWidth
+          label="Task Title"
+          name="taskTitle"
+          value={projectData.taskTitle}
+          onChange={handleChange}
+          required
+        />
+        <TextField
+          fullWidth
+          label="Task Description"
+          name="taskDescription"
+          value={projectData.taskDescription}
+          onChange={handleChange}
+          multiline
+          rows={4}
+          required
+        />
+        <FormControl fullWidth>
+          <InputLabel id="assigned-to-label">Task Assigned To</InputLabel>
+          <Select
+            labelId="assigned-to-label"
+            name="taskAssignedTo"
+            value={projectData.taskAssignedTo}
             onChange={handleChange}
-            className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-          />
-        </div>
-
-        <button
+            required
+          >
+            {users.map((user) => (
+              <MenuItem key={user.id} value={user.id}>
+                {user.username}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <Button
           type="submit"
-          className={`inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white ${
-            loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'
-          }`}
+          variant="contained"
+          color="primary"
           disabled={loading}
+          className="w-full"
         >
-          {loading ? 'Creating...' : 'Create Project'}
-        </button>
+          {loading ? <CircularProgress size={24} /> : 'Create Project'}
+        </Button>
       </form>
     </div>
   );
