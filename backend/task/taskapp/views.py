@@ -2,7 +2,7 @@ from rest_framework import viewsets, permissions, status
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
 from .models import Project, User
-from .serializers import ProjectSerializer, UserRegistrationSerializer
+from .serializers import ProjectSerializer, UserRegistrationSerializer,UserSerializer,TaskSerializer
 
 class IsOwnerOrContributor(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
